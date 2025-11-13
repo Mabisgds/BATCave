@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema Industrial - Acesso</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Inter", "Roboto", sans-serif;
+    }
+
+    body {
+      background-color: #f5f7fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      width: 400px;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+      text-align: center;
+    }
+
+    .logo-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .logo-area img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      margin-bottom: 10px;
+    }
+
+    .logo-area h2 {
+      font-size: 22px;
+      color: #153e97;
+      font-weight: 700;
+    }
+
+    h1 {
+      font-size: 20px;
+      color: #153e97;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      display: inline-block;
+      width: 100%;
+      background: #2563eb;
+      color: white;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      margin-top: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-secondary {
+      background: #64748b;
+    }
+
+    .btn-secondary:hover {
+      background: #475569;
+    }
+
+    .input-group {
+      text-align: left;
+      margin-bottom: 18px;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+      color: #1e293b;
+    }
+
+    input:focus, select:focus {
+      border-color: #2563eb;
+    }
+
+    .link {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .link a {
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    .link a:hover {
+      text-decoration: underline;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 14px 20px;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .toast.success { background: #16a34a; }
+    .toast.error { background: #dc2626; }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TELA INICIAL -->
+  <div class="container" id="startScreen">
+    <div class="logo-area">
+      <img src="logo.png" alt="Logo da Empresa">
+      <h2>Sistema Industrial</h2>
+    </div>
+    <button class="btn" onclick="showLogin()">Login</button>
+    <button class="btn btn-secondary" onclick="showRegister()">Cadastro</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="container hidden" id="loginScreen">
+    <div class="logo-area">
+      <img src="logo.png" alt="Logo da Empresa">
+      <h2>Login</h2>
+    </div>
+
+    <div class="input-group">
+      <label for="loginType">Tipo de Acesso</label>
+      <select id="loginType">
+        <option value="tecnico">Técnico</option>
+        <option value="maquina">Máquina</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label for="matriculaLogin">Número de Matrícula</label>
+      <input type="text" id="matriculaLogin" placeholder="Digite sua matrícula">
+    </div>
+
+    <div class="input-group">
+      <label for="senhaLogin">Senha</label>
+      <input type="password" id="senhaLogin" placeholder="Digite sua senha">
+    </div>
+
+    <button class="btn" onclick="login()">Entrar</button>
+    <div class="link">
+      <a href="#" onclick="showRegister()">Não tem conta? Cadastre-se</a>
+    </div>
+  </div>
+
+  <!-- CADASTRO -->
+  <div class="container hidden" id="registerScreen">
+    <div class="logo-area">
+      <img src="logo.png" alt="Logo da Empresa">
+      <h2>Cadastro</h2>
+    </div>
+
+    <div class="input-group">
+      <label for="userType">Tipo de Cadastro</label>
+      <select id="userType">
+        <option value="tecnico">Técnico</option>
+        <option value="maquina">Máquina</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label for="nomeCad">Nome</label>
+      <input type="text" id="nomeCad" placeholder="Digite o nome completo">
+    </div>
+
+    <div class="input-group">
+      <label for="matriculaCad">Número de Matrícula</label>
+      <input type="text" id="matriculaCad" placeholder="Ex: 20251234">
+    </div>
+
+    <div class="input-group">
+      <label for="codigo">Código de Autorização</label>
+      <input type="password" id="codigo" placeholder="Digite o código de autorização">
+    </div>
+
+    <button class="btn" onclick="register()">Concluir Cadastro</button>
+    <div class="link">
+      <a href="#" onclick="showLogin()">Já tem conta? Faça login</a>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const VALID_CODE = "ACESSO123";
+    const DEFAULT_PASS = "1234";
+
+    function showToast(msg, type) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.className = `toast ${type} show`;
+      setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+
+    function showLogin() {
+      document.getElementById("startScreen").classList.add("hidden");
+      document.getElementById("registerScreen").classList.add("hidden");
+      document.getElementById("loginScreen").classList.remove("hidden");
+    }
+
+    function showRegister() {
+      document.getElementById("startScreen").classList.add("hidden");
+      document.getElementById("loginScreen").classList.add("hidden");
+      document.getElementById("registerScreen").classList.remove("hidden");
+    }
+
+    function saveUser(nome, matricula, tipo) {
+      const users = JSON.parse(localStorage.getItem("usuarios") || "[]");
+      users.push({ nome, matricula, tipo, senha: DEFAULT_PASS });
+      localStorage.setItem("usuarios", JSON.stringify(users));
+    }
+
+    function register() {
+      const nome = document.getElementById("nomeCad").value.trim();
+      const matricula = document.getElementById("matriculaCad").value.trim();
+      const codigo = document.getElementById("codigo").value.trim();
+      const tipo = document.getElementById("userType").value;
+
+      if (!nome || !matricula || !codigo) {
+        showToast("Preencha todos os campos.", "error");
+        return;
+      }
+
+      if (codigo !== VALID_CODE) {
+        showToast("Código de autorização inválido.", "error");
+        return;
+      }
+
+      const users = JSON.parse(localStorage.getItem("usuarios") || "[]");
+      if (users.find(u => u.matricula === matricula)) {
+        showToast("Matrícula já cadastrada.", "error");
+        return;
+      }
+
+      saveUser(nome, matricula, tipo);
+      showToast("Cadastro realizado com sucesso!", "success");
+      setTimeout(showLogin, 2000);
+    }
+
+    function login() {
+      const matricula = document.getElementById("matriculaLogin").value.trim();
+      const senha = document.getElementById("senhaLogin").value.trim();
+      const tipo = document.getElementById("loginType").value;
+
+      const users = JSON.parse(localStorage.getItem("usuarios") || "[]");
+      const found = users.find(u => u.matricula === matricula && u.senha === senha && u.tipo === tipo);
+
+      if (found) {
+        localStorage.setItem("usuarioLogado", JSON.stringify(found)); // 🔹 salva dados do logado
+        showToast(`Bem-vindo(a), ${found.nome}!`, "success");
+        setTimeout(() => {
+          if (tipo === "tecnico") {
+            window.location.href = "tecnico.html";
+          } else {
+            window.location.href = "maq.html";
+          }
+        }, 1500);
+      } else {
+        showToast("Credenciais inválidas ou usuário inexistente.", "error");
+      }
+    }
+  </script>
+</body>
+</html>

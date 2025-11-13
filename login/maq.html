@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitor de Máquinas</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Inter", sans-serif;
+    }
+
+    body {
+      background-color: #f4f6f9;
+      color: #1f2937;
+      transition: background-color 0.4s, color 0.4s;
+    }
+
+    header {
+      background-color: #153e97;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 30px;
+    }
+
+    header h1 {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    header button {
+      background-color: #2563eb;
+      border: none;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+
+    header button:hover {
+      background-color: #1d4ed8;
+    }
+
+    .btn-exit {
+      background-color: #dc2626;
+    }
+
+    .btn-exit:hover {
+      background-color: #b91c1c;
+    }
+
+    .main {
+      padding: 30px;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+      font-size: 22px;
+    }
+
+    .status {
+      color: #16a34a;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 25px;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .card h3 {
+      font-size: 18px;
+      color: #2563eb;
+      margin-bottom: 10px;
+    }
+
+    .temperature {
+      font-size: 36px;
+      font-weight: bold;
+      color: #111827;
+      margin-bottom: 10px;
+    }
+
+    .range {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 10px;
+    }
+
+    .time {
+      font-weight: 600;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+    /* ===== Gráfico ===== */
+    .graph-box {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 25px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    canvas {
+      width: 100%;
+      height: 250px;
+      border-radius: 8px;
+      background-color: #e2e8f0;
+    }
+
+    /* ====== Modo escuro ====== */
+    body.dark-mode {
+      background-color: #0b0c10;
+      color: #f3f4f6;
+    }
+
+    body.dark-mode header {
+      background-color: #1e293b;
+    }
+
+    body.dark-mode .card,
+    body.dark-mode .graph-box {
+      background-color: #1f2937;
+      color: #f3f4f6;
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
+    }
+
+    body.dark-mode h2,
+    body.dark-mode h3,
+    body.dark-mode span {
+      color: #93c5fd;
+    }
+
+    body.dark-mode .temperature {
+      color: #e5e7eb;
+    }
+
+    body.dark-mode .range {
+      color: #9ca3af;
+    }
+
+    body.dark-mode canvas {
+      background-color: #111827;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Monitor de Máquinas</h1>
+    <div class="header-buttons">
+      <button id="toggleTheme">🌙 Tema claro/escuro</button>
+      <button class="btn-exit" id="logoutBtn">Sair</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <h2>Máquina: <span class="nome-maquina" style="color:#2563eb;">Linha-ENF-07</span></h2>
+    <p class="status">Status: <span style="color: #16a34a;">Operando</span></p>
+
+    <div class="content">
+      <div class="card">
+        <h3>TEMPERATURA</h3>
+        <div class="temperature" id="temp">67.9°C</div>
+        <div class="range">Faixa ideal: 50–85°C</div>
+        <div style="font-size:14px;">Min: 67.4°C | Máx: 68.7°C</div>
+        <div class="time">Tempo de Operação: <span id="timer">00:00:00</span></div>
+      </div>
+
+      <div class="graph-box">
+        <h3>SINAL DE OPERAÇÃO</h3>
+        <canvas id="machineGraph"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== Nome da máquina conforme matrícula =====
+    const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
+
+    if (usuarioLogado && usuarioLogado.tipo === "maquina") {
+      const nomeElemento = document.querySelector(".nome-maquina");
+      if (nomeElemento) {
+        nomeElemento.textContent = usuarioLogado.matricula;
+      }
+    } else {
+      window.location.href = "login.html";
+    }
+
+    // ====== Botão de sair ======
+    const logoutBtn = document.getElementById("logoutBtn");
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("usuarioLogado"); // limpa o login
+      window.location.href = "login.html"; // volta pra tela inicial
+    });
+
+    // ====== Modo escuro ======
+    const toggleBtn = document.querySelector("#toggleTheme");
+    const body = document.body;
+
+    const darkModeSaved = localStorage.getItem("darkMode") === "true";
+    if (darkModeSaved) body.classList.add("dark-mode");
+
+    toggleBtn.addEventListener("click", () => {
+      body.classList.toggle("dark-mode");
+      localStorage.setItem("darkMode", body.classList.contains("dark-mode"));
+    });
+
+    // ====== Simulação de temperatura e tempo ======
+    const tempElement = document.getElementById("temp");
+    const timerElement = document.getElementById("timer");
+
+    let startTime = Date.now();
+    function updateTimer() {
+      const elapsed = Date.now() - startTime;
+      const seconds = Math.floor((elapsed / 1000) % 60);
+      const minutes = Math.floor((elapsed / 1000 / 60) % 60);
+      const hours = Math.floor(elapsed / 1000 / 3600);
+      timerElement.textContent = 
+        `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+    }
+
+    function simulateTemperature() {
+      const temp = 67 + Math.random() * 2;
+      tempElement.textContent = temp.toFixed(1) + "°C";
+    }
+
+    setInterval(updateTimer, 1000);
+    setInterval(simulateTemperature, 4000);
+
+    // ====== Gráfico pulsante ======
+    const canvas = document.getElementById("machineGraph");
+    const ctx = canvas.getContext("2d");
+    let x = 0;
+    let points = [];
+
+    function drawGraph() {
+      const width = canvas.width = canvas.clientWidth;
+      const height = canvas.height = canvas.clientHeight;
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.beginPath();
+      ctx.moveTo(0, height / 2);
+
+      for (let i = 0; i < points.length; i++) {
+        const y = height / 2 + points[i] * (height / 4);
+        ctx.lineTo(i * 4, y);
+      }
+
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function updateGraph() {
+      const newPoint = Math.sin(x / 10) + (Math.random() - 0.5) * 0.4;
+      points.push(newPoint);
+      if (points.length > 100) points.shift();
+      x++;
+      drawGraph();
+      requestAnimationFrame(updateGraph);
+    }
+
+    updateGraph();
+  </script>
+</body>
+</html>

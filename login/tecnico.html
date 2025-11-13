@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitor de Máquinas</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Inter", "Roboto", sans-serif;
+    }
+
+    body {
+      background-color: #f1f5f9;
+      color: #1e293b;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* === MENU LATERAL === */
+    nav {
+      width: 240px;
+      background: #153e97;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      padding: 30px 20px;
+      box-shadow: 3px 0 10px rgba(0,0,0,0.15);
+    }
+
+    nav h2 {
+      font-size: 22px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    nav ul {
+      list-style: none;
+    }
+
+    nav ul li {
+      margin: 15px 0;
+    }
+
+    nav ul li a {
+      text-decoration: none;
+      color: #e2e8f0;
+      display: block;
+      padding: 10px 15px;
+      border-radius: 8px;
+      transition: 0.2s;
+    }
+
+    nav ul li a:hover {
+      background: #1e40af;
+      color: #fff;
+    }
+
+    nav footer {
+      text-align: center;
+      font-size: 12px;
+      color: #cbd5e1;
+    }
+
+    /* === CONTEÚDO PRINCIPAL === */
+    main {
+      margin-left: 240px;
+      flex: 1;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #153e97;
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    header button {
+      background-color: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+
+    header button:hover {
+      background-color: #1d4ed8;
+    }
+
+    .btn-exit {
+      background-color: #dc2626;
+    }
+
+    .btn-exit:hover {
+      background-color: #b91c1c;
+    }
+
+    /* === GRID DE CARDS === */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 25px;
+    }
+
+    /* === CARD DE MÁQUINA === */
+    .card {
+      background-color: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+      transition: transform 0.25s ease;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      transform: scale(1.03);
+    }
+
+    .image-container {
+      width: 100%;
+      height: 150px;
+      background-color: #cbd5e1;
+      overflow: hidden;
+    }
+
+    .image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s;
+    }
+
+    .card:hover .image-container img {
+      transform: scale(1.1);
+    }
+
+    .card-content {
+      padding: 15px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .temperature {
+      font-size: 26px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .progress-bar {
+      background-color: #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+      height: 8px;
+      margin-top: 5px;
+    }
+
+    .progress {
+      height: 8px;
+      background: linear-gradient(90deg, #2563eb, #1d4ed8);
+      transition: width 0.4s ease;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      text-transform: capitalize;
+      width: fit-content;
+      margin-top: 8px;
+    }
+
+    .low { background-color: #e3f2fd; color: #1565c0; }
+    .medium { background-color: #fff3e0; color: #ef6c00; }
+    .high { background-color: #ffebee; color: #c62828; }
+
+    .info {
+      font-size: 14px;
+      color: #475569;
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+
+  </style>
+</head>
+<body>
+  <!-- === MENU LATERAL === -->
+  <nav>
+    <div>
+      <h2>⚙️ Monitor</h2>
+      <ul>
+        <li><a href="#">🏠 Início</a></li>
+        <li><a href="#">📊 Máquinas</a></li>
+        <li><a href="#">🧍 Perfil</a></li>
+        <li><a href="#">🛠️ Chamados</a></li>
+        <li><a href="#">⚙️ Configurações</a></li>
+      </ul>
+    </div>
+    <footer>© 2025 - Sistema Industrial</footer>
+  </nav>
+
+  <!-- === CONTEÚDO PRINCIPAL === -->
+  <main>
+    <header>
+      <h1>Monitor de Máquinas Industriais</h1>
+      <div class="header-buttons">
+        <button onclick="toggleTheme()">Tema claro/escuro</button>
+        <button class="btn-exit" onclick="logout()">Sair</button>
+      </div>
+    </header>
+
+    <div class="grid" id="machineGrid"></div>
+  </main>
+
+  <script>
+    const machineGrid = document.getElementById('machineGrid');
+
+    const imageList = [
+      "https://picsum.photos/400/200?random=1",
+      "https://picsum.photos/400/200?random=2",
+      "https://picsum.photos/400/200?random=3",
+      "https://picsum.photos/400/200?random=4",
+      "https://picsum.photos/400/200?random=5",
+      "https://picsum.photos/400/200?random=6",
+      "https://picsum.photos/400/200?random=7",
+      "https://picsum.photos/400/200?random=8",
+      "https://picsum.photos/400/200?random=9",
+      "https://picsum.photos/400/200?random=10"
+    ];
+
+    const machines = Array.from({ length: 10 }, (_, i) => ({
+      id: i + 1,
+      name: `Máquina ${i + 1}`,
+      temp: Math.random() * 40 + 40,
+      hours: Math.floor(Math.random() * 130) + 50,
+      lastMaintenance: new Date(2025, 10, Math.floor(Math.random() * 10) + 1)
+        .toLocaleDateString('pt-BR'),
+      image: imageList[i]
+    }));
+
+    function getStatus(temp) {
+      if (temp < 55) return 'low';
+      if (temp < 70) return 'medium';
+      return 'high';
+    }
+
+    function renderMachines() {
+      machineGrid.innerHTML = '';
+      machines.forEach(m => {
+        const status = getStatus(m.temp);
+        const priorityText = status === 'low' ? 'Baixa Prioridade' :
+                             status === 'medium' ? 'Média Prioridade' :
+                             'Alta Prioridade';
+        const tempPercent = Math.min(((m.temp - 40) / 45) * 100, 100);
+
+        const card = document.createElement('div');
+        card.className = `card`;
+        card.innerHTML = `
+          <div class="image-container">
+            <img src="${m.image}" alt="Imagem da ${m.name}">
+          </div>
+          <div class="card-content">
+            <h3>${m.name}</h3>
+            <div class="temperature">${m.temp.toFixed(1)}°C</div>
+            <div class="progress-bar"><div class="progress" style="width:${tempPercent}%"></div></div>
+            <div class="status ${status}">${priorityText}</div>
+            <div class="info">
+              <b>Tempo de Operação:</b> ${m.hours}h<br>
+              <b>Última Manutenção:</b> ${m.lastMaintenance}
+            </div>
+          </div>
+        `;
+        machineGrid.appendChild(card);
+      });
+    }
+
+    function simulateData() {
+      machines.forEach(m => {
+        m.temp += (Math.random() - 0.5) * 2;
+        m.temp = Math.max(35, Math.min(85, m.temp));
+      });
+      renderMachines();
+    }
+
+    setInterval(simulateData, 2500);
+    renderMachines();
+
+    // Tema claro/escuro
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+      if (document.body.classList.contains('dark')) {
+        document.body.style.background = "#0f172a";
+        document.querySelectorAll(".card").forEach(c => c.style.background = "#1e293b");
+      } else {
+        document.body.style.background = "#f1f5f9";
+        document.querySelectorAll(".card").forEach(c => c.style.background = "#ffffff");
+      }
+    }
+
+    // ====== Função de logout ======
+    function logout() {
+      localStorage.removeItem("usuarioLogado");
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>
