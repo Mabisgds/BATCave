@@ -1,0 +1,1266 @@
+<!doctype html>
+<html lang="pt-br" data-bs-theme="light">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Painel da Máquina — Monitoramento em Tempo Real</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* ---------------------------------------------------------------------- */
+    /* INÍCIO: NOVAS CORES ESCURAS E INJEÇÃO NO PRIMARY DO BOOTSTRAP */
+    /* ---------------------------------------------------------------------- */
+    :root {
+      /* Cores da Nova Paleta (Azul Mais Escuro) */
+      --brand: #011e3f;
+      /* Azul Marinho Escuro (Darker Deep Blue) */
+      --brand-2: #004C99;
+      /* Azul Secundário Escuro (Darker Standard Blue) */
+
+      /* Injeta o tom de azul principal no Bootstrap para botões e textos */
+      --bs-primary: var(--brand);
+      --bs-primary-rgb: 0, 45, 98;
+      /* RGB de #002D62 */
+
+      /* Cores de Status */
+      --ok: #28A745;
+      /* Verde de Sucesso */
+
+      /* Modo Claro */
+      --soft-bg-light: #F8F9FA;
+      --card-light: #FFFFFF;
+      --text-light: #212529;
+
+      /* Modo Escuro */
+      --soft-bg-dark: #0f172a;
+      --card-dark: #00000;
+      --text-dark: #F0F0F0;
+    }
+
+    body[data-bs-theme="light"] {
+      background: var(--soft-bg-light);
+      color: var(--text-light);
+    }
+
+    body[data-bs-theme="dark"] {
+      background: var(--soft-bg-dark);
+      color: var(--text-dark);
+    }
+
+    /* ---------------------------------------------------------------------- */
+    /* FIM: NOVAS CORES */
+    /* ---------------------------------------------------------------------- */
+
+
+    /* Estética da Sidebar (padrão em telas grandes) */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 220px;
+      /* MODIFICADO: Usa a cor da navbar */
+      background: var(--brand);
+      color: #fff;
+      padding-top: 0;
+      /* REMOVIDO: O padding foi removido para dar espaço ao logo no topo */
+      z-index: 1040;
+      border-right: none;
+    }
+
+    body[data-bs-theme="light"] .sidebar {
+      /* MODIFICADO: Usa a cor da navbar e texto branco */
+      background: var(--brand);
+      color: #fff;
+      border-right: none;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 12px 20px;
+      text-decoration: none;
+      color: #fff;
+      /* Garante texto claro */
+      font-weight: 500;
+    }
+
+    .sidebar a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      /* Hover suave no fundo escuro */
+    }
+
+    body[data-bs-theme="light"] .sidebar a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      /* Hover suave no fundo escuro */
+    }
+
+    /* Estilos para Offcanvas (menu sanduíche) */
+    .offcanvas.offcanvas-start {
+      /* MODIFICADO: Usa a cor da navbar */
+      background: var(--brand);
+      color: #fff;
+      width: 220px !important;
+    }
+
+    body[data-bs-theme="light"] .offcanvas.offcanvas-start {
+      /* MODIFICADO: Usa a cor da navbar e texto branco */
+      background: var(--brand);
+      color: #fff;
+    }
+
+    .offcanvas-header {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      /* Garante texto branco */
+      padding-top: 1rem;
+    }
+
+    body[data-bs-theme="light"] .offcanvas-header {
+      border-bottom-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Garante que o botão de fechar seja branco no fundo escuro */
+    .offcanvas-header .btn-close {
+      filter: invert(1);
+      opacity: 0.8;
+    }
+
+    .offcanvas-body a {
+      display: block;
+      padding: 12px 20px;
+      text-decoration: none;
+      color: #fff;
+      /* Garante texto branco */
+      font-weight: 500;
+    }
+
+    .offcanvas-body a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      /* Hover suave no fundo escuro */
+    }
+
+    body[data-bs-theme="light"] .offcanvas-body a:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .content {
+      margin-left: 220px;
+    }
+
+    @media (max-width: 991.98px) {
+      .content {
+        margin-left: 0;
+      }
+    }
+
+    /* Navbar: Usa o novo gradiente de cores --brand e --brand-2 */
+    .navbar {
+      background: linear-gradient(90deg, var(--brand), var(--brand-2));
+    }
+
+    .brand-badge {
+      font-weight: 600;
+      background: rgba(255, 255, 255, .15);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, .25);
+    }
+
+    /* ---------------------------------------------------------------------- */
+    /* DETALHE INDUSTRIAL NO CARD */
+    /* ---------------------------------------------------------------------- */
+    .card {
+      /* Estilo da caixa de cartão */
+      border: 1px solid #e7ecf3;
+      border-left: 5px solid var(--brand);
+      /* Borda Azul Industrial Esquerda */
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .06);
+      border-radius: 0.75rem;
+      transition: .3s;
+    }
+
+    body[data-bs-theme="dark"] .card {
+      /* Estilo da caixa de cartão - Dark Mode */
+      background: var(--card-dark);
+      color: var(--text-dark);
+      border-color: #30363d;
+      border-left: 5px solid var(--brand-2);
+      /* Borda Azul Industrial Esquerda (Dark Mode) */
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
+    }
+
+    /* ---------------------------------------------------------------------- */
+
+    .metric {
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 700;
+    }
+
+    .metric-sub {
+      color: #667085;
+      font-size: .95rem;
+    }
+
+    .progress.temp {
+      height: 10px;
+      background: #eef2f7;
+    }
+
+    body[data-bs-theme="dark"] .progress.temp {
+      background: #21262d;
+    }
+
+    .progress-bar.temp {
+      background: linear-gradient(90deg, #6bd1a8, #ffd166, #ef476f);
+    }
+
+    /* fixed chart area to avoid collapse */
+    .chart-wrap {
+      height: 280px !important;
+      min-height: 280px !important;
+      max-height: 280px !important;
+      width: 100%;
+      position: relative;
+      display: block !important;
+    }
+
+    canvas#rtChart {
+      height: 280px !important;
+      width: 100% !important;
+      display: block;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--ok);
+      box-shadow: 0 0 0 .25rem rgba(25, 135, 84, .12);
+      margin-right: .5rem;
+    }
+
+    /* Style for multi-timers */
+    #timersChamadosContainer>div {
+      border-left: 5px solid var(--bs-danger);
+    }
+
+    /* Downtime Table Styling for Dark Mode */
+    body[data-bs-theme="dark"] .table-striped>tbody>tr:nth-of-type(odd)>* {
+      --bs-table-bg-type: var(--card-dark);
+      background-color: rgba(255, 255, 255, 0.05);
+      color: var(--text-dark);
+    }
+
+    /* Estilo do Status de Downtime (menor que o botão) */
+    #downtimeStatus {
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+
+<body data-bs-theme="light">
+  <div class="offcanvas offcanvas-start offcanvas-lg" tabindex="-1" id="offcanvasSidebar"
+    aria-labelledby="offcanvasSidebarLabel">
+    <div class="offcanvas-header">
+      <div class="d-flex align-items-center me-auto">
+        <img src="C:\Users\manutencao\Desktop\maq\logo.png" alt="Logo" style="height: 100px; margin-right: 10px;">
+        <span class="text-white fw-light fs-6">Monitor de Máquinas</span>
+      </div>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+      <a href="#" data-section="painel" data-bs-dismiss="offcanvas" data-bs-target="#offcanvasSidebar">📊 Painel
+        Principal</a>
+      <a href="#" data-section="historico" data-bs-dismiss="offcanvas" data-bs-target="#offcanvasSidebar">📜 Histórico
+        de
+        Chamados</a>
+      <a href="#" data-section="downtime" data-bs-dismiss="offcanvas" data-bs-target="#offcanvasSidebar">⏱️ Medição de
+        Downtime</a>
+      <a href="#" data-section="mtbf" data-bs-dismiss="offcanvas" data-bs-target="#offcanvasSidebar">⚙️ MTBF</a>
+      <a href="#" data-section="mttr" data-bs-dismiss="offcanvas" data-bs-target="#offcanvasSidebar">🧭 MTTR</a>
+    </div>
+  </div>
+
+  <div class="sidebar d-none d-lg-block">
+    <div class="py-3 text-center" style="padding-top: 15px !important; padding-bottom: 1rem !important;">
+      <img src="C:\Users\manutencao\Desktop\maq\logo.png" alt="Logo"
+        style="height: 220px; width: auto; max-width: 100%;">
+      <span class="d-block text-white fw-light fs-6 mt-2">Monitor de Máquinas</span>
+    </div>
+    <hr class="dropdown-divider m-0 border-light opacity-25">
+
+    <a href="#" data-section="painel">📊 Painel Principal</a>
+    <a href="#" data-section="historico">📜 Histórico de Chamados</a>
+    <a href="#" data-section="downtime">⏱️ Medição de Downtime</a>
+    <a href="#" data-section="mtbf">⚙️ MTBF</a>
+    <a href="#" data-section="mttr">🧭 MTTR</a>
+  </div>
+
+  <div class="content">
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container-fluid">
+        <button class="btn btn-primary d-lg-none me-3" type="button" data-bs-toggle="offcanvas"
+          data-bs-target="#offcanvasSidebar" aria-controls="offcanvasSidebar">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <a class="navbar-brand d-lg-none" href="#"></a>
+
+        <span class="badge rounded-pill brand-badge">Ambiente Empresarial</span>
+        <div class="ms-auto d-flex gap-2">
+          <button id="themeToggle" class="btn btn-outline-light btn-sm">Tema claro/escuro</button>
+          <button id="logoutBtn" class="btn btn-danger btn-sm">Sair</button>
+        </div>
+      </div>
+    </nav>
+
+    <div id="mainArea" class="p-4"></div>
+  </div>
+
+  <div class="modal fade" id="modalChamado" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <form class="modal-content" id="formChamado">
+        <div class="modal-header">
+          <h5 class="modal-title">Abrir chamado — <span id="modalMachineName">Linha-ENF-07</span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3"><label class="form-label">Título</label><input class="form-control" name="titulo" required>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6"><label class="form-label">Categoria</label>
+              <select class="form-select" name="categoria" required>
+                <option disabled selected>Selecione…</option>
+                <option>Elétrica</option>
+                <option>Mecânica</option>
+                <option>Segurança</option>
+                <option>Software/PLC</option>
+                <option>Outros</option>
+              </select>
+            </div>
+            <div class="col-md-6"><label class="form-label">Prioridade</label>
+              <select class="form-select" name="prioridade" required>
+                <option disabled selected>Selecione…</option>
+                <option>Baixa</option>
+                <option>Média</option>
+                <option>Alta</option>
+                <option>Crítica</option>
+              </select>
+            </div>
+          </div>
+          <div class="mt-3"><label class="form-label">Descrição</label>
+            <textarea class="form-control" rows="3" name="descricao" required></textarea>
+          </div>
+          <div class="mt-3"><label class="form-label">E-mail</label>
+            <input type="email" class="form-control" name="email" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Enviar chamado</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalDowntime" tabindex="-1" aria-labelledby="modalDowntimeLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <form class="modal-content" id="formDowntime">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalDowntimeLabel">Registrar Parada</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="motivoDowntime" class="form-label">Motivo da Parada</label>
+            <select class="form-select" id="motivoDowntime" required>
+              <option value="">Selecione o motivo...</option>
+              <option value="FALHA MECÂNICA">Falha Mecânica</option>
+              <option value="FALHA ELÉTRICA">Falha Elétrica</option>
+              <option value="FALTA DE MATERIAL">Falta de Material</option>
+              <option value="SETUP">Setup/Troca de Ferramenta</option>
+              <option value="MANUTENÇÃO PREVENTIVA">Manutenção Preventiva</option>
+              <option value="OUTROS">Outros</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-danger">Iniciar Contagem</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="position-fixed bottom-0 end-0 p-3">
+    <div id="toastOk" class="toast text-bg-success">
+      <div class="d-flex">
+        <div class="toast-body">Chamado enviado com sucesso!</div>
+        <button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // theme + logout
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      const b = document.body;
+      b.setAttribute('data-bs-theme', b.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark');
+
+      // Limpar e reiniciar o gráfico ao mudar o tema
+      if (window.__myChart) {
+        window.__myChart.destroy();
+        window.__myChart = null;
+      }
+      // Força o recarregamento do painel para que o gráfico seja redesenhado com as novas cores
+      if (area.innerHTML.includes('rtChart')) {
+        loadSection('painel');
+      }
+    });
+    document.getElementById('logoutBtn').addEventListener('click', () => window.location.href = 'login.html');
+
+    const area = document.getElementById('mainArea');
+
+    // TEMPLATES (telas)
+    const telas = {
+      painel: `
+      <div class="container my-4">
+        <h1 class="h3 mb-1">Máquina: <span class="text-primary fw-bold">Linha-ENF-07</span></h1>
+        <div class="text-secondary mb-3">Status: <span class="status-dot"></span><span class="fw-semibold text-success">Operando</span></div>
+        <div id="alertChamado"></div>
+
+        <div class="row g-4">
+          <div class="col-lg-4">
+            <div class="card p-3">
+              <h6>Temperatura</h6>
+              <div class="metric"><span id="tempVal">--</span>°C</div>
+              <div class="progress temp mb-2"><div class="progress-bar temp" id="tempBar"></div></div>
+              <small>Mín: <span id="tempMin">—</span>°C Máx: <span id="tempMax">—</span>°C</small>
+
+              <hr>
+              <h6>Tempo de operação</h6>
+              <div class="metric"><span id="runTime">00d 00:00:00</span></div>
+              <div class="metric-sub">Desde: <span id="sinceStart">—</span></div>
+
+              <hr>
+              <h6 class="mt-3">Acompanhamento de Chamados (30 min)</h6>
+              <div id="timersChamadosContainer"></div>
+            </div>
+          </div>
+
+          <div class="col-lg-8">
+            <div class="card p-3">
+              <div class="d-flex justify-content-between mb-2">
+                <button class="btn btn-outline-primary btn-sm" id="pauseBtn">Pausar gráfico</button>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalChamado">Abrir chamado</button>
+              </div>
+              <div class="chart-wrap">
+                <canvas id="rtChart" height="280" style="display:block"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `,
+      historico: `
+      <div class="container my-4">
+        <h3>📜 Histórico de Chamados</h3>
+        <table class="table table-striped" id="tabelaHistorico">
+          <thead><tr><th>Título</th><th>Categoria</th><th>Prioridade</th><th>Data</th><th>Email</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <button class="btn btn-outline-primary" onclick="loadSection('painel')">Voltar ao painel</button>
+      </div>
+    `,
+      // TEMPLATE DOWNTIME (MODIFICADO)
+      downtime: `
+      <div class="container my-4">
+          <h3>⏱️ Medição de Downtime</h3>
+          <p class="text-secondary">Registre o tempo em que a máquina Linha-ENF-07 ficou parada e o motivo.</p>
+
+          <div class="card p-3 mb-4">
+              <div class="d-flex justify-content-between align-items-center flex-wrap">
+                  <div class="text-secondary mb-2 mb-md-0">Status Atual: 
+                      <span id="downtimeStatus"></span>
+                  </div>
+                  <div id="downtimeControls" class="mt-2 mt-md-0">
+                      <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalDowntime" id="iniciarDowntimeBtn">Iniciar Parada</button>
+                  </div>
+              </div>
+          </div>
+
+          <div class="card p-3">
+              <h5 class="card-title mb-3">Histórico de Paradas</h5>
+              <div class="table-responsive">
+                  <table class="table table-striped" id="tabelaDowntime">
+                      <thead>
+                          <tr>
+                              <th>Motivo</th>
+                              <th>Início</th>
+                              <th>Fim</th>
+                              <th>Duração</th>
+                              <th>Ação</th>
+                          </tr>
+                      </thead>
+                      <tbody></tbody>
+                  </table>
+              </div>
+              <small class="text-secondary mt-3">Total de tempo em downtime: <span id="totalDowntime">00:00:00</span></small>
+          </div>
+      </div>
+    `,
+      // TEMPLATE MTBF
+      mtbf: `
+      <div class="container my-4">
+        <h3>⚙️ MTBF (Mean Time Between Failures)</h3>
+        <p class="text-secondary">O MTBF mede a confiabilidade, representando o tempo médio que a máquina opera entre falhas.</p>
+
+        <div class="card p-4 mb-4 text-center bg-primary-subtle text-primary">
+            <h5 class="card-title">MTBF Calculado</h5>
+            <div class="metric display-4 fw-bold" id="mtbfResult">00:00:00</div>
+            <p class="mb-0" id="mtbfUnit">Horas:Minutos:Segundos</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h6>Tempo Total de Operação (Up Time)</h6>
+                    <p class="metric-sub text-success" id="totalUpTime">00:00:00</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h6>Tempo Total de Parada (Down Time)</h6>
+                    <p class="metric-sub text-danger" id="totalDowntimeMTBF">00:00:00</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3">
+                    <h6>Número de Falhas Registradas (Não planejadas)</h6>
+                    <p class="metric-sub text-warning" id="numFailures">0</p>
+                </div>
+            </div>
+        </div>
+      </div>
+    `,
+      // TEMPLATE MTTR
+      mttr: `
+      <div class="container my-4">
+        <h3>🧭 MTTR (Mean Time To Repair)</h3>
+        <p class="text-secondary">O MTTR mede a capacidade de manutenção, representando o tempo médio necessário para reparar a máquina após uma falha.</p>
+
+        <div class="card p-4 mb-4 text-center bg-info-subtle text-info">
+            <h5 class="card-title">MTTR Calculado</h5>
+            <div class="metric display-4 fw-bold" id="mttrResult">00:00:00</div>
+            <p class="mb-0" id="mttrUnit">Horas:Minutos:Segundos</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card p-3">
+                    <h6>Tempo Total de Reparo (Falhas não planejadas)</h6>
+                    <p class="metric-sub text-danger" id="totalRepairTime">00:00:00</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3">
+                    <h6>Número de Reparos Concluídos (Falhas não planejadas)</h6>
+                    <p class="metric-sub text-success" id="numRepairs">0</p>
+                </div>
+            </div>
+        </div>
+      </div>
+    `
+    };
+
+    // loadSection: insert HTML then initialize (delay to ensure render)
+    function loadSection(name) {
+      // Destruir o gráfico antes de remover a área.
+      if (window.__myChart) {
+        window.__myChart.destroy();
+        window.__myChart = null;
+      }
+      // Parar os clocks de métricas
+      if (window.__downtimeClockInterval) clearInterval(window.__downtimeClockInterval);
+      if (window.__mtbfUpdateInterval) clearInterval(window.__mtbfUpdateInterval);
+      if (window.__mttrUpdateInterval) clearInterval(window.__mttrUpdateInterval);
+
+      area.innerHTML = telas[name] || '';
+
+      if (name === 'painel') setTimeout(inicializarPainel, 60);
+      if (name === 'historico') setTimeout(carregarHistorico, 60);
+      if (name === 'downtime') setTimeout(carregarDowntime, 60);
+      if (name === 'mtbf') setTimeout(carregarMTBF, 60);
+      if (name === 'mttr') setTimeout(carregarMTTR, 60);
+    }
+
+    document.querySelectorAll('.sidebar a, .offcanvas-body a').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        loadSection(a.dataset.section);
+      });
+    });
+
+    // Funções Utilitárias
+    function escapeHtml(s) {
+      if (!s) return '';
+      return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+    }
+
+    function formatDuration(ms) {
+      if (ms < 0 || isNaN(ms)) return '00:00:00';
+      const totalSeconds = Math.floor(ms / 1000);
+      const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+      const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+      const s = String(totalSeconds % 60).padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+    // Novo utilitário para formatar a duração em HH:MM:SS ou '∞'
+    // Alteração 5: Funcao para formatar MTBF/MTTR (em horas decimais) para HH:MM:SS
+    function formatHoursToDuration(hours) {
+      if (isNaN(hours) || hours <= 0) return '00:00:00';
+
+      // Se for "infinito", retorna um símbolo
+      if (!isFinite(hours)) return '∞';
+
+      const totalSeconds = Math.floor(hours * 3600);
+      const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+      const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+      const s = String(totalSeconds % 60).padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+
+    // --- LÓGICA DE MÚLTIPLOS TIMERS (CHAMADOS) ---
+
+    function getActiveTimers() {
+      return JSON.parse(localStorage.getItem('activeChamadoTimers') || '[]');
+    }
+
+    function setActiveTimers(timers) {
+      localStorage.setItem('activeChamadoTimers', JSON.stringify(timers));
+    }
+
+    function iniciarNovoTimer(chamadoTitle) {
+      const timers = getActiveTimers();
+      timers.push({
+        id: Date.now(),
+        title: chamadoTitle,
+        startTime: Date.now()
+      });
+      setActiveTimers(timers);
+    }
+
+    function exibirTimersChamados() {
+      const container = document.getElementById('timersChamadosContainer');
+      if (!container) return;
+
+      const activeTimers = getActiveTimers();
+      const now = Date.now();
+      const duration = 30 * 60 * 1000; // 30 minutos em ms
+
+      let stillActiveTimers = [];
+      let html = '';
+
+      activeTimers.forEach((timer) => {
+        const elapsed = now - timer.startTime;
+        const remaining = duration - elapsed;
+
+        if (remaining > 0) {
+          stillActiveTimers.push(timer);
+          const totalSeconds = Math.floor(remaining / 1000);
+          const mm = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+          const ss = String(totalSeconds % 60).padStart(2, '0');
+
+          const title = escapeHtml(timer.title);
+
+          html += `
+          <div class="mb-2 p-2 card border-danger-subtle bg-transparent">
+            <small class="d-block text-secondary-emphasis text-truncate" title="${title}">Chamado: ${title}</small>
+            <div class="text-danger fw-bold fs-5">${mm}:${ss}</div>
+          </div>
+        `;
+        }
+      });
+
+      setActiveTimers(stillActiveTimers);
+
+      if (html === '') {
+        container.innerHTML = '<p class="text-center text-secondary mb-0 p-3">Nenhum chamado em acompanhamento.</p>';
+      } else {
+        container.innerHTML = html;
+      }
+    }
+
+    if (window.__multiTimerInterval) clearInterval(window.__multiTimerInterval);
+    window.__multiTimerInterval = setInterval(exibirTimersChamados, 1000);
+
+    // --- FIM DA LÓGICA DE MÚLTIPLOS TIMERS ---
+
+
+    // --- LÓGICA DE DOWNTIME ---
+
+    const DOWNTIME_HISTORY_KEY = 'downtimeHistory';
+    const CURRENT_DOWNTIME_KEY = 'currentDowntime';
+
+    function getDowntimeHistory() {
+      return JSON.parse(localStorage.getItem(DOWNTIME_HISTORY_KEY) || '[]');
+    }
+
+    function setDowntimeHistory(history) {
+      localStorage.setItem(DOWNTIME_HISTORY_KEY, JSON.stringify(history));
+    }
+
+    function getCurrentDowntime() {
+      return JSON.parse(localStorage.getItem(CURRENT_DOWNTIME_KEY) || 'null');
+    }
+
+    function setCurrentDowntime(downtime) {
+      if (downtime) {
+        localStorage.setItem(CURRENT_DOWNTIME_KEY, JSON.stringify(downtime));
+      } else {
+        localStorage.removeItem(CURRENT_DOWNTIME_KEY);
+      }
+    }
+
+    function formatDowntimeRecord(record) {
+      const start = new Date(record.startTime).toLocaleString();
+      const end = record.endTime ? new Date(record.endTime).toLocaleString() : '—';
+      const duration = record.endTime ? formatDuration(record.endTime - record.startTime) : 'Contando...';
+      const action = record.endTime ? '—' :
+        `<button class="btn btn-success btn-sm" onclick="finalizarDowntime('${record.id}')">Finalizar</button>`;
+
+      return `
+          <tr>
+              <td>${escapeHtml(record.reason)}</td>
+              <td>${start}</td>
+              <td>${end}</td>
+              <td id="duration-${record.id}" class="${record.endTime ? '' : 'text-danger fw-bold'}">${duration}</td>
+              <td>${action}</td>
+          </tr>
+      `;
+    }
+
+    /**
+     * Ponto 4: Calcula o tempo total de TODAS as paradas FINALIZADAS.
+     */
+    function calcularTotalDowntime(history) {
+      let totalMs = 0;
+      history.forEach(record => {
+        if (record.endTime) { // Considera apenas paradas com hora de fim (finalizadas)
+          totalMs += record.endTime - record.startTime;
+        }
+      });
+      return formatDuration(totalMs);
+    }
+
+    // Chamada na aba "Downtime"
+    function carregarDowntime() {
+      const tbody = document.querySelector('#tabelaDowntime tbody');
+      if (!tbody) return;
+
+      let history = getDowntimeHistory();
+      const current = getCurrentDowntime();
+
+      if (current) {
+        if (!history.some(r => r.id === current.id)) {
+          history = [current, ...history];
+        }
+      }
+
+      history.sort((a, b) => b.startTime - a.startTime);
+
+      history = history.slice(0, 30);
+
+      tbody.innerHTML = history.map(formatDowntimeRecord).join('');
+
+      document.getElementById('totalDowntime').textContent = calcularTotalDowntime(getDowntimeHistory());
+
+      updateDowntimeStatus(current);
+    }
+
+    function iniciarDowntime(reason) {
+      if (getCurrentDowntime()) {
+        alert('Já existe uma parada em andamento. Finalize a atual antes de iniciar outra.');
+        return;
+      }
+
+      const newDowntime = {
+        id: Date.now(),
+        reason: reason,
+        startTime: Date.now(),
+        endTime: null
+      };
+      setCurrentDowntime(newDowntime);
+      loadSection('downtime');
+    }
+
+    window.finalizarDowntime = function (id) {
+      const finishTime = Date.now();
+      const current = getCurrentDowntime();
+      let history = getDowntimeHistory();
+
+      if (current && current.id === Number(id)) {
+        current.endTime = finishTime;
+        history.unshift(current);
+        setDowntimeHistory(history);
+        setCurrentDowntime(null);
+      } else {
+        const recordIndex = history.findIndex(r => r.id === Number(id) && r.endTime === null);
+        if (recordIndex !== -1) {
+          history[recordIndex].endTime = finishTime;
+          setDowntimeHistory(history);
+        }
+      }
+
+      loadSection('downtime');
+    }
+
+    // FUNÇÃO MODIFICADA: Alterada para usar o estilo de ponto/texto do Painel Principal
+    function updateDowntimeStatus(current) {
+      const statusEl = document.getElementById('downtimeStatus');
+      const controlsEl = document.getElementById('downtimeControls');
+
+      if (!statusEl || !controlsEl) return;
+
+      if (current) {
+        // Status PARADA: Usando ponto e texto vermelho (dot customizado para Danger)
+        statusEl.innerHTML = `
+              <span class="status-dot" style="background: var(--bs-danger); box-shadow: 0 0 0 .25rem rgba(220,53,69,.12);"></span>
+              <span class="text-danger">PARADA: ${escapeHtml(current.reason)}</span>
+          `;
+        controlsEl.innerHTML =
+          `<button class="btn btn-success" onclick="finalizarDowntime('${current.id}')">Finalizar Parada</button>`;
+        startDowntimeClock(current.id, current.startTime);
+      } else {
+        // Status OPERANDO: Usando ponto e texto verde (idêntico ao Painel Principal)
+        statusEl.innerHTML = `
+              <span class="status-dot"></span>
+              <span class="text-success">Operando</span>
+          `;
+        controlsEl.innerHTML =
+          `<button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalDowntime" id="iniciarDowntimeBtn">Iniciar Parada</button>`;
+        if (window.__downtimeClockInterval) clearInterval(window.__downtimeClockInterval);
+      }
+    }
+
+    function startDowntimeClock(id, startTime) {
+      if (window.__downtimeClockInterval) clearInterval(window.__downtimeClockInterval);
+
+      window.__downtimeClockInterval = setInterval(() => {
+        const durationEl = document.getElementById(`duration-${id}`);
+        if (durationEl) {
+          const currentDuration = formatDuration(Date.now() - startTime);
+          durationEl.textContent = currentDuration;
+        } else {
+          if (window.__downtimeClockInterval) clearInterval(window.__downtimeClockInterval);
+        }
+      }, 1000);
+    }
+
+    // --- FIM DA LÓGICA DE DOWNTIME ---
+
+
+    // --- LÓGICA DE MTBF ---
+
+    /**
+     * Ponto 5: MTBF baseado em falhas não planejadas (exclui SETUP e MANUTENÇÃO PREVENTIVA).
+     */
+    function carregarMTBF() {
+      const history = getDowntimeHistory();
+      const currentDowntime = getCurrentDowntime();
+      let totalDowntimeMs = 0;
+
+      // 1. Calcular Downtime Total (Histórico + Atual - TODAS as paradas)
+      history.forEach(record => {
+        if (record.endTime) {
+          totalDowntimeMs += record.endTime - record.startTime;
+        }
+      });
+      // Inclui a parada atual, se houver, no cálculo do Tempo Total de Parada
+      if (currentDowntime) {
+        totalDowntimeMs += Date.now() - currentDowntime.startTime;
+      }
+
+      // 2. Calcular Tempo Total de Operação (Up Time)
+      const machineStartTime = Number(localStorage.getItem('machineStart') || Date.now());
+      const totalTimeMs = Date.now() - machineStartTime;
+      const totalUpTimeMs = Math.max(0, totalTimeMs - totalDowntimeMs);
+
+      // 3. Contar Número de Falhas (FINALIZADO e NÃO planejado)
+      const numFailures = history.filter(r =>
+        r.endTime !== null &&
+        r.reason !== 'SETUP' &&
+        r.reason !== 'MANUTENÇÃO PREVENTIVA' &&
+        r.reason !== 'FALTA DE MATERIAL' // Faltas de material também podem ser excluídas se o foco for apenas em falhas de equipamento
+      ).length;
+
+      // 4. Calcular MTBF: MTBF = Tempo Total de Operação / Número de Falhas
+      let mtbfHours = 0;
+      if (numFailures > 0) {
+        const upTimeHours = totalUpTimeMs / (1000 * 3600); // Conversão de ms para horas
+        mtbfHours = upTimeHours / numFailures;
+      }
+
+      // 5. Exibir Resultados
+      const totalUpTimeEl = document.getElementById('totalUpTime');
+      const totalDowntimeMTBFEl = document.getElementById('totalDowntimeMTBF');
+      const numFailuresEl = document.getElementById('numFailures');
+      const mtbfResultEl = document.getElementById('mtbfResult');
+      const mtbfUnitEl = document.getElementById('mtbfUnit');
+
+      // Alteração 5: Formatando durações em HH:MM:SS
+      if (totalUpTimeEl) totalUpTimeEl.textContent = formatDuration(totalUpTimeMs);
+      if (totalDowntimeMTBFEl) totalDowntimeMTBFEl.textContent = formatDuration(totalDowntimeMs);
+      if (numFailuresEl) numFailuresEl.textContent = numFailures;
+
+      const mtbfFormattedDuration = formatHoursToDuration(mtbfHours);
+
+      if (numFailures === 0 && totalUpTimeMs > 0) {
+        if (mtbfResultEl) mtbfResultEl.textContent = '∞';
+        if (mtbfUnitEl) mtbfUnitEl.textContent = 'Nenhuma falha de reparo registrada ainda.';
+      } else if (numFailures > 0) {
+        if (mtbfResultEl) mtbfResultEl.textContent = mtbfFormattedDuration;
+        if (mtbfUnitEl) mtbfUnitEl.textContent = 'Horas:Minutos:Segundos';
+      } else {
+        // Caso ainda não haja dados de tempo de operação e falhas
+        if (mtbfResultEl) mtbfResultEl.textContent = '00:00:00'; // Alteração 5: Usando '00:00:00'
+        if (mtbfUnitEl) mtbfUnitEl.textContent = 'Aguardando dados...';
+      }
+
+      // Atualização periódica
+      if (window.__mtbfUpdateInterval) clearInterval(window.__mtbfUpdateInterval);
+      window.__mtbfUpdateInterval = setInterval(carregarMTBF, 5000); // Atualiza a cada 5 segundos
+    }
+
+    // --- FIM DA LÓGICA DE MTBF ---
+
+
+    // --- LÓGICA DE MTTR ---
+
+    /**
+     * Ponto 6: MTTR baseado no tempo total de reparo de falhas não planejadas e no número de reparos concluídos.
+     */
+    function carregarMTTR() {
+      const history = getDowntimeHistory();
+
+      // Filtra apenas as paradas FINALIZADAS que representam uma FALHA não planejada
+      // O Tempo Total de Reparo (MTTR) deve ser o somatório do tempo que a equipe de manutenção gastou
+      // para reparar uma falha real.
+      const completedFailureRepairs = history.filter(r =>
+        r.endTime !== null &&
+        r.reason !== 'SETUP' &&
+        r.reason !== 'MANUTENÇÃO PREVENTIVA' &&
+        r.reason !== 'FALTA DE MATERIAL' // Exclui paradas não relacionadas a reparo de falha
+      );
+
+      let totalRepairTimeMs = 0;
+      completedFailureRepairs.forEach(record => {
+        // O tempo de duração da parada é o Tempo de Reparo (Time To Repair)
+        totalRepairTimeMs += record.endTime - record.startTime;
+      });
+
+      const numRepairs = completedFailureRepairs.length;
+
+      // 1. Calcular MTTR: MTTR = Tempo Total de Reparo / Número de Reparos Concluídos
+      let mttrHours = 0;
+      if (numRepairs > 0) {
+        const totalRepairTimeHours = totalRepairTimeMs / (1000 * 3600); // Conversão de ms para horas
+        mttrHours = totalRepairTimeHours / numRepairs;
+      }
+
+      // 2. Exibir Resultados
+      const totalRepairTimeEl = document.getElementById('totalRepairTime');
+      const numRepairsEl = document.getElementById('numRepairs');
+      const mttrResultEl = document.getElementById('mttrResult');
+      const mttrUnitEl = document.getElementById('mttrUnit');
+
+      // Alteração 5: Formatando durações em HH:MM:SS
+      if (totalRepairTimeEl) totalRepairTimeEl.textContent = formatDuration(totalRepairTimeMs);
+      if (numRepairsEl) numRepairsEl.textContent = numRepairs;
+
+      const mttrFormattedDuration = formatHoursToDuration(mttrHours);
+
+      if (numRepairs === 0) {
+        if (mttrResultEl) mttrResultEl.textContent = '00:00:00'; // Alteração 5: Usando '00:00:00'
+        if (mttrUnitEl) mttrUnitEl.textContent = 'Aguardando reparos de falhas concluídos...';
+      } else {
+        if (mttrResultEl) mttrResultEl.textContent = mttrFormattedDuration;
+        if (mttrUnitEl) mttrUnitEl.textContent = 'Horas:Minutos:Segundos';
+      }
+
+      // Atualização periódica
+      if (window.__mttrUpdateInterval) clearInterval(window.__mttrUpdateInterval);
+      window.__mttrUpdateInterval = setInterval(carregarMTTR, 5000); // Atualiza a cada 5 segundos
+    }
+
+    // --- FIM DA LÓGICA DE MTTR ---
+
+
+    // histórico
+    function salvarChamado(chamado) {
+      const arr = JSON.parse(localStorage.getItem('historicoChamados') || '[]');
+      arr.push(chamado);
+      localStorage.setItem('historicoChamados', JSON.stringify(arr));
+    }
+
+    function carregarHistorico() {
+      const tbody = document.querySelector('#tabelaHistorico tbody');
+      if (!tbody) return;
+      const arr = JSON.parse(localStorage.getItem('historicoChamados') || '[]');
+      tbody.innerHTML = arr.map(c =>
+        `<tr><td>${escapeHtml(c.titulo)}</td><td>${escapeHtml(c.categoria)}</td><td>${escapeHtml(c.prioridade)}</td><td>${escapeHtml(c.data)}</td><td>${escapeHtml(c.email)}</td></tr>`
+      ).join('');
+    }
+
+    // machine start time (persist so it doesn't reset on tab change)
+    let startTime = localStorage.getItem('machineStart');
+    if (!startTime) {
+      startTime = Date.now();
+      localStorage.setItem('machineStart', startTime);
+    }
+
+    // inicializar painel (timer + iniciar grafico + outras coisas)
+    function inicializarPainel() {
+      const modalName = document.getElementById('modalMachineName');
+      if (modalName) modalName.textContent = 'Linha-ENF-07';
+      const since = document.getElementById('sinceStart');
+      if (since) since.textContent = new Date(Number(startTime)).toLocaleString();
+
+      const updateRun = () => {
+        const diff = Date.now() - Number(startTime);
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        const el = document.getElementById('runTime');
+        if (el) el.textContent =
+          `${String(d).padStart(2, '0')}d ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      };
+      updateRun();
+      if (window.__runtimeInterval) clearInterval(window.__runtimeInterval);
+      window.__runtimeInterval = setInterval(updateRun, 1000);
+
+      exibirTimersChamados();
+
+      iniciarGraficoQuandoPronto();
+
+      const pBtn = document.getElementById('pauseBtn');
+      if (pBtn) {
+        pBtn.textContent = 'Pausar gráfico';
+      }
+    }
+
+    // robust grafico starter: waits until canvas has non-zero height and exists
+    function iniciarGraficoQuandoPronto() {
+      const canvas = document.getElementById('rtChart');
+      if (!canvas) {
+        return setTimeout(iniciarGraficoQuandoPronto, 60);
+      }
+      if (canvas.clientHeight < 50) {
+        return setTimeout(iniciarGraficoQuandoPronto, 60);
+      }
+      if (window.__myChart) {
+        return;
+      }
+
+      let temp = 68.4,
+        min = Infinity,
+        max = -Infinity;
+
+      function updateTemp(v) {
+        const tv = document.getElementById('tempVal');
+        if (tv) tv.textContent = v.toFixed(1);
+        min = Math.min(min, v);
+        max = Math.max(max, v);
+        const tmin = document.getElementById('tempMin');
+        if (tmin) tmin.textContent = min.toFixed(1);
+        const tmax = document.getElementById('tempMax');
+        if (tmax) tmax.textContent = max.toFixed(1);
+        const bar = document.getElementById('tempBar');
+        if (bar) bar.style.width = Math.min(100, Math.max(0, (v - 30) / (100 - 30) * 100)) + '%';
+      }
+
+      const isDark = document.body.getAttribute('data-bs-theme') === 'dark';
+      const textColor = isDark ? '#f0f0f0' : '#212529'; // Usando as novas variáveis
+      const gridColor = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)';
+      const brandColor = isDark ? '#004C99' : '#002D62'; // Cor da linha do gráfico (um dos novos azuis)
+
+      const config = {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Sinal',
+            data: [],
+            borderWidth: 2,
+            pointRadius: 0,
+            borderColor: brandColor,
+            /* Aplica o novo azul ao gráfico */
+            tension: 0.35
+          }]
+        },
+        options: {
+          animation: false,
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Tempo (Segundos)',
+                color: textColor,
+                font: {
+                  size: 14
+                }
+              },
+              display: true,
+              ticks: {
+                color: textColor,
+                maxTicksLimit: 10
+              },
+              grid: {
+                display: true,
+                color: gridColor
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Amplitude do Sinal',
+                color: textColor,
+                font: {
+                  size: 14
+                }
+              },
+              display: true,
+              min: -2,
+              max: 5,
+              ticks: {
+                color: textColor
+              },
+              grid: {
+                display: true,
+                color: gridColor
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              enabled: true
+            }
+          }
+        }
+      };
+
+      const ctx = canvas.getContext('2d');
+      window.__myChart = new Chart(ctx, config);
+
+      let t = 0;
+      let paused = false;
+
+      function heartbeatSignal(t) {
+        let base = 0.25 * Math.sin(t / 10) + 0.15 * Math.sin(t / 3);
+        let noise = (Math.random() - 0.5) * 0.1;
+        let pulse = 0;
+        if (t % 75 === 0) pulse = 4.0;
+        else if (t % 75 === 1) pulse = -0.6;
+        else if (t % 75 === 2) pulse = 0.4;
+        return base + pulse + noise;
+      }
+
+      if (window.__chartInterval) clearInterval(window.__chartInterval);
+      window.__chartInterval = setInterval(() => {
+        if (paused) return;
+        t++;
+        const y = Math.max(-1.5, Math.min(4.5, heartbeatSignal(t)));
+        const ds = window.__myChart.data.datasets[0].data;
+        const labels = window.__myChart.data.labels;
+
+        ds.push(y);
+        labels.push(t.toString());
+
+        if (ds.length > 120) {
+          ds.shift();
+          labels.shift();
+        }
+        window.__myChart.update('none');
+
+        temp += (Math.random() - 0.5) * 0.15;
+        updateTemp(temp);
+      }, 1000);
+
+      const pauseBtn = document.getElementById('pauseBtn');
+      if (pauseBtn) {
+        pauseBtn.onclick = (e) => {
+          paused = !paused;
+          e.target.textContent = paused ? 'Retomar gráfico' : 'Pausar gráfico';
+        };
+      }
+    }
+
+    // form submission - save chamado, start 30min timer, show toast, go back to painel
+    const formChamadoEl = document.getElementById('formChamado');
+    formChamadoEl.addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      const f = ev.target;
+      const chamado = {
+        titulo: f.titulo.value,
+        categoria: f.categoria.value,
+        prioridade: f.prioridade.value,
+        descricao: f.descricao.value,
+        email: f.email.value,
+        data: new Date().toLocaleString()
+      };
+      salvarChamado(chamado);
+      iniciarNovoTimer(chamado.titulo);
+
+      const modalEl = document.getElementById('modalChamado');
+      const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+      modal.hide();
+
+      new bootstrap.Toast(document.getElementById('toastOk')).show();
+
+      loadSection('painel');
+
+      const alertDiv = document.getElementById('alertChamado');
+      if (alertDiv) {
+        alertDiv.innerHTML = `<div class="alert alert-success mt-3">Chamado enviado com sucesso!</div>`;
+        setTimeout(() => {
+          if (alertDiv) alertDiv.innerHTML = '';
+        }, 5000);
+      }
+
+      f.reset();
+    });
+
+    // form submission - DOWNTIME
+    const formDowntimeEl = document.getElementById('formDowntime');
+    formDowntimeEl.addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      const motivo = document.getElementById('motivoDowntime').value;
+      iniciarDowntime(motivo);
+
+      const modalEl = document.getElementById('modalDowntime');
+      const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+      modal.hide();
+      ev.target.reset();
+    });
+
+
+    // init first screen
+    loadSection('painel');
+  </script>
+</body>
+
+</html>

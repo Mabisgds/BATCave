@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BATCAVE - Acesso</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* Base e Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Inter", sans-serif;
+        }
+
+        /* Estilo do Body e Background */
+        body {
+            background-color: #101221;
+            background-image: linear-gradient(135deg, #101221 0%, #17192C 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Container Principal */
+        .container {
+            display: flex;
+            width: 800px;
+            max-width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            background: #17192C;
+            transition: all 0.3s ease;
+        }
+
+        /* Lado Esquerdo (Informações de Segurança) */
+        .side-info {
+            flex: 1;
+            padding: 40px;
+            background: linear-gradient(135deg, #011e3f 0%, #011e3f 100%);
+            color: #e0e6ff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        .side-info::before {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 150px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23101221' fill-opacity='1' d='M0,288L48,272C96,256,192,224,288,208C384,192,480,192,576,208C672,224,768,256,864,266.7C960,277,1056,267,1152,245.3C1248,224,1344,192,1392,176L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom / cover;
+            opacity: 0.1;
+        }
+
+        /* Container do Logo */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-img {
+            max-height: 200px;
+            max-width: 100%;
+            margin-right: 10px;
+        }
+
+        .security-info h2 {
+            font-size: 26px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .security-info p {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .security-info i {
+            margin-right: 10px;
+            color: #4a90e2;
+        }
+
+        /* Lado Direito (Formulário) */
+        .form-area {
+            flex: 1;
+            padding: 40px;
+            text-align: center;
+            background: #17192C;
+            color: #fff;
+        }
+
+        .form-area h1 {
+            font-size: 22px;
+            margin-bottom: 5px;
+            color: #fff;
+            font-weight: 800;
+        }
+
+        .form-area h2 {
+            font-size: 16px;
+            color: #a0a6bc;
+            margin-bottom: 30px;
+        }
+
+        /* Input Styles */
+        .input-group {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #a0a6bc;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #3c4970;
+            border-radius: 10px;
+            font-size: 15px;
+            background: #1e243b;
+            color: #fff;
+            transition: border-color .3s;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+
+        /* Botão Principal */
+        .btn {
+            width: 100%;
+            background: linear-gradient(to right, #4a90e2, #5d9cec);
+            padding: 12px;
+            color: white;
+            font-size: 16px;
+            border: none;
+            margin-top: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: .3s;
+            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.4);
+        }
+
+        .btn:hover {
+            background: linear-gradient(to right, #5d9cec, #4a90e2);
+        }
+
+        /* Links */
+        .link {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .link a {
+            color: #5d9cec;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Classe que esconde o formulário */
+        .hidden {
+            display: none !important;
+            /* Importante para garantir que seja escondido */
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 18px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            opacity: 0;
+            pointer-events: none;
+            transition: .4s;
+            display: flex;
+            align-items: center;
+        }
+
+        .toast i {
+            margin-right: 8px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .toast.success {
+            background: #16a34a;
+        }
+
+        .toast.error {
+            background: #dc2626;
+        }
+
+        /* --- MEDIA QUERIES PARA RESPONSIVIDADE --- */
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                /* Pilha verticalmente */
+                width: 95%;
+                max-width: 450px;
+            }
+
+            .side-info {
+                padding: 30px;
+                text-align: center;
+                border-radius: 16px 16px 0 0;
+                min-height: 200px;
+            }
+
+            .side-info::before {
+                height: 50px;
+                opacity: 0.05;
+            }
+
+            .logo-container {
+                justify-content: center;
+            }
+
+            .logo-img {
+                max-height: 150px;
+            }
+
+            .security-info {
+                padding-top: 20px;
+            }
+
+            .security-info h2 {
+                font-size: 22px;
+                margin-bottom: 15px;
+            }
+
+            .security-info p {
+                justify-content: center;
+            }
+
+            .form-area {
+                padding: 30px;
+                border-radius: 0 0 16px 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="side-info">
+            <div class="logo-container">
+                <img src="C:\Users\manutencao\Desktop\maq\logo.png" alt="BATCAVE Logo" class="logo-img">
+            </div>
+            <div class="security-info">
+                <h2>Acesso seguro</h2>
+                <p>Entre com suas credenciais para continuar.</p>
+                <p><i class="fa-solid fa-shield-alt"></i> Acesso corporativo seguro — apenas usuários autorizados.</p>
+                <p><i class="fa-solid fa-headset"></i> Dúvidas? Suporte 24/7: <a href="mailto:suporte@batcave.com"
+                        style="color: #fff; font-weight: bold; text-decoration: none;">suporte@batcave.com</a></p>
+            </div>
+        </div>
+
+        <div class="form-area" id="loginScreen">
+            <h1>Bem vindo</h1>
+            <h2>Login - BATCAVE</h2>
+
+            <div class="input-group">
+                <label>Função</label>
+                <select id="loginType">
+                    <option value="tec_seguranca">Téc. Segurança</option>
+                    <option value="tec_eletronica">Téc. Eletrônica</option>
+                    <option value="tec_temperatura">Téc. Temperatura</option>
+                    <option value="tec_mecanica">Téc. Mecânica</option>
+                    <option value="tec_software">Téc. Software</option>
+                    <option value="tec_eletrica">Téc. Elétrica</option>
+                    <option value="operador">Operador</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Nome</label>
+                <input type="text" id="nomeLogin" placeholder="Seu Nome">
+            </div>
+
+            <div class="input-group">
+                <label>Matrícula</label>
+                <input type="text" id="matriculaLogin" placeholder="Sua Matrícula">
+            </div>
+
+            <div class="input-group">
+                <label>Código de Autorização</label>
+                <input type="password" id="codigoLogin" placeholder="********">
+            </div>
+
+            <button class="btn" onclick="login()"><i class="fa-solid fa-arrow-right-to-bracket"></i> Entrar</button>
+            <div class="link"><a href="#" onclick="showRegister()">Não tem conta? Cadastre-se</a></div>
+        </div>
+
+        <div class="form-area hidden" id="registerScreen">
+
+            <h1>Bem vindo(a)!</h1>
+            <h2>Cadastro - BATCAVE</h2>
+
+            <div class="input-group">
+                <label>Função</label>
+                <select id="userType">
+                    <option value="tec_seguranca">Téc. Segurança</option>
+                    <option value="tec_eletronica">Téc. Eletrônica</option>
+                    <option value="tec_temperatura">Téc. Temperatura</option>
+                    <option value="tec_mecanica">Téc. Mecânica</option>
+                    <option value="tec_software">Téc. Software</option>
+                    <option value="tec_eletrica">Téc. Elétrica</option>
+                    <option value="operador">Operador</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Nome</label>
+                <input type="text" id="nomeCad" placeholder="Seu Nome Completo">
+            </div>
+
+            <div class="input-group">
+                <label>Matrícula</label>
+                <input type="text" id="matriculaCad" placeholder="Número da Matrícula">
+            </div>
+
+            <div class="input-group">
+                <label>Código de Autorização</label>
+                <input type="password" id="codigoCad" placeholder="Código Secreto">
+            </div>
+
+            <button class="btn" onclick="register()">Concluir Cadastro</button>
+            <div class="link"><a href="#" onclick="showLogin()">Já tem conta? Faça Login</a></div>
+        </div>
+    </div>
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const VALID_CODE = "BAT123";
+
+        function showToast(msg, type) {
+            const toast = document.getElementById("toast");
+            toast.innerHTML = (type === 'error' ? '<i class="fa-solid fa-circle-exclamation"></i> ' : '<i class="fa-solid fa-circle-check"></i> ') + msg;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove("show"), 2500);
+        }
+
+        function showLogin() {
+            // Garante que o Cadastro fique escondido
+            document.getElementById("registerScreen").classList.add("hidden");
+            // Garante que o Login fique visível
+            document.getElementById("loginScreen").classList.remove("hidden");
+        }
+
+        function showRegister() {
+            // Garante que o Login fique escondido
+            document.getElementById("loginScreen").classList.add("hidden");
+            // Garante que o Cadastro fique visível
+            document.getElementById("registerScreen").classList.remove("hidden");
+        }
+
+        function saveUser(nome, matricula, tipo, codigo) {
+            const users = JSON.parse(localStorage.getItem("BATCAVE_USERS") || "[]");
+            users.push({ nome, matricula, tipo, codigo });
+            localStorage.setItem("BATCAVE_USERS", JSON.stringify(users));
+        }
+
+        function register() {
+            const nome = document.getElementById("nomeCad").value.trim();
+            const matricula = document.getElementById("matriculaCad").value.trim();
+            const codigo = document.getElementById("codigoCad").value.trim();
+            const tipo = document.getElementById("userType").value;
+
+            if (!nome || !matricula || !codigo)
+                return showToast("Preencha todos os campos!", "error");
+
+            if (codigo !== VALID_CODE)
+                return showToast("Código de autorização incorreto!", "error");
+
+            const users = JSON.parse(localStorage.getItem("BATCAVE_USERS") || "[]");
+            if (users.some(u => u.matricula === matricula))
+                return showToast("Matrícula já cadastrada!", "error");
+
+            saveUser(nome, matricula, tipo, codigo);
+
+            showToast("Cadastro realizado! Redirecionando para Login...", "success");
+            setTimeout(showLogin, 1500);
+        }
+
+        function login() {
+            const nome = document.getElementById("nomeLogin").value.trim();
+            const matricula = document.getElementById("matriculaLogin").value.trim();
+            const codigo = document.getElementById("codigoLogin").value.trim();
+            const tipo = document.getElementById("loginType").value;
+
+            const users = JSON.parse(localStorage.getItem("BATCAVE_USERS") || "[]");
+
+            const user = users.find(u =>
+                u.nome === nome &&
+                u.matricula === matricula &&
+                u.codigo === codigo &&
+                u.tipo === tipo
+            );
+
+            if (!user)
+                return showToast("Credenciais inválidas: Verifique nome, matrícula, função e código.", "error");
+
+            showToast(`Bem vindo, ${user.nome}! Acesso Autorizado.`, "success");
+
+            setTimeout(() => {
+                alert("Login efetuado com sucesso! (simulação)");
+            }, 1000);
+        }
+    </script>
+
+</body>
+
+</html>
